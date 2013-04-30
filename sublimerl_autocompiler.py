@@ -29,6 +29,7 @@
 # imports
 import sublime, sublime_plugin
 import os, threading
+import re
 from sublimerl_core import SUBLIMERL, SublimErlProjectLoader
 
 
@@ -57,11 +58,20 @@ class SublimErlAutocompiler(SublimErlProjectLoader):
 			self.panel.show(self.panel.size())
 			self.panel_buffer = ''
 			self.window.run_command("show_panel", {"panel": "output.%s" % self.panel_name})
+			regions = []
+			for line in self.last_text.splitlines():
+				m = re.search("(.+):(\d+):", line)
+				if m != None and self.view.file_name().endswith(m.group(1)):
+					r = self.view.line(self.view.text_point(long(m.group(2)) - 1, 0))
+					regions.append(r)
+			self.view.add_regions("sublimerl_errors", regions, "comment")
 
 	def hide_panel(self):
 		self.window.run_command("hide_panel")
+		self.view.erase_regions("sublimerl_errors")
 
 	def log(self, text):
+		self.last_text = text
 		self.panel_buffer += text.encode('utf-8')
 		sublime.set_timeout(self.update_panel, 0)
 
