@@ -29,7 +29,8 @@
 # imports
 import sublime, sublime_plugin
 import os, threading
-from sublimerl_core import SUBLIMERL, SublimErlProjectLoader
+import SublimErl.sublimerl_core as GLOBALS
+from .sublimerl_core import SublimErlProjectLoader
 
 
 # test runner
@@ -46,8 +47,8 @@ class SublimErlAutocompiler(SublimErlProjectLoader):
 
 	def setup_panel(self):
 		self.panel = self.window.get_output_panel(self.panel_name)
-		self.panel.settings().set("syntax", os.path.join(SUBLIMERL.plugin_path, "theme", "SublimErlAutocompile.hidden-tmLanguage"))
-		self.panel.settings().set("color_scheme", os.path.join(SUBLIMERL.plugin_path, "theme", "SublimErlAutocompile.hidden-tmTheme"))
+		self.panel.settings().set("syntax", os.path.join(GLOBALS.SUBLIMERL.plugin_path, "theme", "SublimErlAutocompile.hidden-tmLanguage"))
+		self.panel.settings().set("color_scheme", os.path.join(GLOBALS.SUBLIMERL.plugin_path, "theme", "SublimErlAutocompile.hidden-tmTheme"))
 
 	def update_panel(self):
 		if len(self.panel_buffer):
@@ -78,7 +79,7 @@ class SublimErlAutocompilerListener(sublime_plugin.EventListener):
 	# CALLBACK ON VIEW SAVE
 	def on_post_save(self, view):
 		# check init successful
-		if SUBLIMERL.initialized == False: return
+		if GLOBALS.SUBLIMERL.initialized == False: return
 		# ensure context matches
 		caret = view.sel()[0].a
 		if not ('source.erlang' in view.scope_name(caret) and sublime.platform() != 'windows'): return
