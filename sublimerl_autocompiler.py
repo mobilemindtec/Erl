@@ -33,6 +33,11 @@ import SublimErl.sublimerl_core as GLOBALS
 from .sublimerl_core import SublimErlProjectLoader
 
 
+# update command (used to edit the view content)
+class UpdateCommand(sublime_plugin.TextCommand):
+	def run(self, edit, buffer=None):
+		self.view.insert(edit, self.view.size(), buffer)
+
 # test runner
 class SublimErlAutocompiler(SublimErlProjectLoader):
 
@@ -52,9 +57,7 @@ class SublimErlAutocompiler(SublimErlProjectLoader):
 
 	def update_panel(self):
 		if len(self.panel_buffer):
-			panel_edit = self.panel.begin_edit()
-			self.panel.insert(panel_edit, self.panel.size(), self.panel_buffer)
-			self.panel.end_edit(panel_edit)
+			self.panel.run_command("update", {"buffer": self.panel_buffer})
 			self.panel.show(self.panel.size())
 			self.panel_buffer = ''
 			self.window.run_command("show_panel", {"panel": "output.%s" % self.panel_name})
