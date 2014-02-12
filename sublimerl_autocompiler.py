@@ -63,7 +63,9 @@ class SublimErlAutocompiler(SublimErlProjectLoader):
 		self.window.run_command("hide_panel")
 
 	def log(self, text):
-		self.panel_buffer += text.encode('utf-8')
+		if type(text) == bytes:
+			text = text.decode('utf-8')
+		self.panel_buffer += text
 		sublime.set_timeout(self.update_panel, 0)
 
 	def compile(self):
