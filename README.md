@@ -1,9 +1,10 @@
-# SublimErl (Erlang Tests & Code Completion)
+### SublimErl (Erlang Tests & Code Completion)
 
-Overview
---------
+---
 
-SublimErl is a plugin for the text editor [Sublime Text 2](http://www.sublimetext.com/2). It allows you to:
+### Overview
+
+SublimErl is a plugin for the text editor [Sublime Text 3](http://www.sublimetext.com). It allows you to:
 
 * Benefit from **Code Completion** ( all Erlang libs + your current project )
 * Allows you to **Auto-Indent**  your Erlang code
@@ -19,8 +20,9 @@ A brief feature introduction video can be seen [here](http://www.youtube.com/wat
 
 [![SublimErl screenshot](http://www.ostinelli.net/_out_images/video.png)](http://www.youtube.com/watch?v=KIzxbjlHmu0)
 
-Screenshots
------------
+---
+
+### Screenshots
 
 Here's a screenshot of SublimErl's **Code Completion** feature:
 
@@ -34,8 +36,9 @@ Here's a screenshot of SublimErl **running an Eunit specific test** in file.
 
 ![SublimErl screenshot](http://www.ostinelli.net/_out_images/running_test.jpeg)
 
-Usage
------
+---
+
+### Usage
 
 * **Code Completion**: Just type and select available options
 * **Auto-Indenting**: hit `Command-Option-L` to auto-intent an entire file
@@ -48,20 +51,19 @@ Usage
 * **Goto any exported function** of your project easily: hit `Command-Option-p` (OSX) | `Command-Alt-p` (Linux/Win) and select a function
 * To access **man pages**: hit `Command-Option-i` (OSX) | `Command-Alt-i` (Linux/Win) and select a module
 
-Installation
-------------
+---
+
+### Installation
+
 SublimErl currently supports only on **OSX** and **Linux**. There are 3 ways to install it.
 
-##### 1. Sublime Package Control
-Download and install the [Sublime Package Control](http://wbond.net/sublime_packages/package_control). This package controller allows you to easily manage your Sublime Text 2 plugins (installs / removals / upgrades).
-
-SublimErl's latest stable versions are pushed automatically to the package control. However, if you want the latest and greatest, you'll have to use one of the other following options.
+##### 1. Sublime Package Control (soon)
 
 ##### 2. Git Clone
-Go to your Sublime Text 2 `Packages` directory:
+Go to your Sublime Text 3 `Packages` directory:
 
-* OS X: `~/Library/Application Support/Sublime Text 2/Packages`
-* Linux: `~/.Sublime Text 2/Packages/`
+* OS X: `~/Library/Application Support/Sublime Text 3/Packages`
+* Linux: `~/.Sublime Text 3/Packages/`
 
 and clone the repository using the command below:
 
@@ -69,23 +71,22 @@ and clone the repository using the command below:
 git clone https://github.com/ostinelli/SublimErl.git
 ```
 
-##### 3. File Download
-Head to the [downloads](https://github.com/ostinelli/SublimErl/downloads) section and unzipping the downloaded file into the Sublime Text 2 `Packages` directory.
+---
 
-Configuration
--------------
+### Configuration
 
 SublimErl needs and will try to detect the paths of the following executables: **rebar**, **erl**, **escript** and **dialyzer**. If it doesn't succeed to find those, or if you prefer to manually configure these path, you can set them in the `SublimErl.sublime-settings` file, located in the `SublimErl` plugin directory.
 
-Dependencies
-------------
+---
+
+### Dependencies
 
 To use SublimErl, you need to have:
 
-* The editor [Sublime Text 2](http://www.sublimetext.com/2).
-* [Erlang](http://www.erlang.org/download.html) ( ..obviously ^^_ ).
-* Basho's [Rebar](https://github.com/basho/rebar) built after September 13th, 2012 (which has support for the `tests=` option).
-* (optional) [Erlang man pages](http://www.erlang.org/download.html) if you use this functionality.
+* The editor [Sublime Text 3](http://www.sublimetext.com)
+* [Erlang](http://www.erlang.org/download.html)
+* [Rebar](https://github.com/rebar/rebar)
+* (optional) [Erlang man pages](http://www.erlang.org/download.html) if you use this functionality
 
 To unleash the full power of the plugin, you will also need to comply to:
 
@@ -117,7 +118,12 @@ or, for example, a more complex project structure defined in rebar.conf:
    |-- ...
 ```
 
-Known issues
-------------
+---
 
-We have had reports that some plugin functionalities experience unwanted behaviour (freezing) with the Erlang precompiled package provided by Erlang Solutions, see [issue #56](https://github.com/ostinelli/SublimErl/issues/56). We're looking into this.
+### Contributing
+
+1. Fork it
+2. Create your feature branch (`git checkout -b my-new-feature`)
+3. Commit your changes (`git commit -am 'add some feature'`)
+4. Push to the branch (`git push origin my-new-feature`)
+5. Create new Pull Request

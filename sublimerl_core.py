@@ -1,5 +1,5 @@
 # ==========================================================================================================
-# SublimErl - A Sublime Text 2 Plugin for Erlang Integrated Testing & Code Completion
+# SublimErl - A Sublime Text 3 Plugin for Erlang Integrated Testing & Code Completion
 #
 # Copyright (C) 2013, Roberto Ostinelli <roberto@ostinelli.net>.
 # All rights reserved.
@@ -27,7 +27,7 @@
 # ==========================================================================================================
 
 # globals
-SUBLIMERL_VERSION = '0.5.1'
+SUBLIMERL_VERSION = '0.6.0'
 
 # imports
 import sublime, sublime_plugin
@@ -107,7 +107,7 @@ class SublimErlGlobal():
 				p = subprocess.Popen(". %s; echo $PATH" % file_path, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
 				path, stderr = p.communicate()
 				concatenated_paths.append(path.strip())
-		return ''.join(concatenated_paths)
+		return ''.join(str(concatenated_paths)[1:-1])
 
 	def set_paths(self):
 
@@ -322,7 +322,7 @@ class SublimErlProjectLoader():
 			for line in p.stdout:
 				self.log(line)
 				stdout.append(line)
-			return (p.returncode, ''.join(stdout))
+			return (p.returncode, ''.join(str(stdout)[1:-1]))
 
 
 # common text command class

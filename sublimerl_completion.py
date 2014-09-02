@@ -1,5 +1,5 @@
 # ==========================================================================================================
-# SublimErl - A Sublime Text 2 Plugin for Erlang Integrated Testing & Code Completion
+# SublimErl - A Sublime Text 3 Plugin for Erlang Integrated Testing & Code Completion
 #
 # Copyright (C) 2013, Roberto Ostinelli <roberto@ostinelli.net>.
 # All rights reserved.
@@ -30,7 +30,7 @@
 import sublime, sublime_plugin, fnmatch
 import os, threading, pickle, json, re
 import SublimErl.sublimerl_core as GLOBALS
-from .sublimerl_core import  SublimErlProjectLoader
+from .sublimerl_core import SublimErlProjectLoader
 
 SUBLIMERL_COMPLETIONS = {
 	'erlang_libs': {
@@ -164,7 +164,7 @@ class SublimErlCompletions(SublimErlProjectLoader):
 				# set cwd
 				os.chdir(GLOBALS.SUBLIMERL.support_path)
 				# start gen
-				this.execute_os_command("python sublimerl_libparser.py %s %s" % (this.shellquote(SublimErlTextCommand.erlang_libs_path), this.shellquote(dest_file_base)))				
+				this.execute_os_command("python sublimerl_libparser.py %s %s" % (this.shellquote(this.project_root), this.shellquote(dest_file_base)))
 				# rename file to .full
 				os.remove("%s.sublime-completions.full" % dest_file_base)
 				os.rename("%s.sublime-completions" % dest_file_base, "%s.sublime-completions.full" % dest_file_base)

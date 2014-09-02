@@ -1,5 +1,5 @@
 # ==========================================================================================================
-# SublimErl - A Sublime Text 2 Plugin for Erlang Integrated Testing & Code Completion
+# SublimErl - A Sublime Text 3 Plugin for Erlang Integrated Testing & Code Completion
 #
 # Copyright (C) 2013, Roberto Ostinelli <roberto@ostinelli.net>.
 # All rights reserved.
@@ -28,10 +28,15 @@
 
 
 # imports
-import sublime
+import sublime, sublime_plugin
 import os
-from .sublimerl_core import SUBLIMERL, SublimErlTextCommand, SublimErlGlobal
+import SublimErl.sublimerl_core as GLOBALS
+from .sublimerl_core import SublimErlTextCommand, SublimErlGlobal
 
+# update command (used to edit the view content)
+class UpdateCommand(sublime_plugin.TextCommand):
+	def run(self, edit, buffer=None):
+		self.view.insert(edit, self.view.size(), buffer)
 
 # show man
 class SublimErlMan():
@@ -49,14 +54,10 @@ class SublimErlMan():
 
 	def setup_panel(self):
 		self.panel = self.window.get_output_panel(self.panel_name)
-		self.panel.settings().set("syntax", os.path.join(SUBLIMERL.plugin_path, "theme", "SublimErlAutocompile.hidden-tmLanguage"))
-		self.panel.settings().set("color_scheme", os.path.join(SUBLIMERL.plugin_path, "theme", "SublimErlAutocompile.hidden-tmTheme"))
 
 	def update_panel(self):
 		if len(self.panel_buffer):
-			panel_edit = self.panel.begin_edit()
-			self.panel.insert(panel_edit, self.panel.size(), self.panel_buffer)
-			self.panel.end_edit(panel_edit)
+			self.panel.run_command("update", {"buffer": self.panel_buffer})
 			self.panel.show(self.panel.size())
 			self.panel_buffer = ''
 			self.window.run_command("show_panel", {"panel": "output.%s" % self.panel_name})
@@ -65,6 +66,8 @@ class SublimErlMan():
 		self.window.run_command("hide_panel")
 
 	def log(self, text):
+		if type(text) == bytes:
+			text = text.decode('utf-8')
 		self.panel_buffer += text
 		sublime.set_timeout(self.update_panel, 0)
 
@@ -76,7 +79,7 @@ class SublimErlMan():
 
 	def set_module_names(self):
 		# load file
-		modules_filepath = os.path.join(SUBLIMERL.plugin_path, "completion", "Erlang-libs.sublime-completions")
+		modules_filepath = os.path.join(GLOBALS.SUBLIMERL.plugin_path, "completion", "Erlang-libs.sublime-completions")
 		f = open(modules_filepath, 'r')
 		contents = eval(f.read())
 		f.close()
@@ -90,7 +93,7 @@ class SublimErlMan():
 		# get file and line
 		module_name = self.module_names[index]
 		# open man
-		retcode, data = SUBLIMERL.execute_os_command("%s -man %s | col -b" % (SUBLIMERL.erl_path, module_name))
+		retcode, data = GLOBALS.SUBLIMERL.execute_os_command("%s -man %s | col -b" % (GLOBALS.SUBLIMERL.erl_path, module_name))
 		if retcode == 0: self.log(data)
 
 

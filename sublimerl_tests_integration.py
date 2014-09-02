@@ -1,5 +1,5 @@
 # ==========================================================================================================
-# SublimErl - A Sublime Text 2 Plugin for Erlang Integrated Testing & Code Completion
+# SublimErl - A Sublime Text 3 Plugin for Erlang Integrated Testing & Code Completion
 #
 # Copyright (C) 2013, Roberto Ostinelli <roberto@ostinelli.net>.
 # All rights reserved.
@@ -28,10 +28,15 @@
 
 
 # imports
-import sublime
+import sublime, sublime_plugin
 import os, subprocess, re, threading, webbrowser
-from .sublimerl_core import SUBLIMERL_VERSION, SUBLIMERL, SublimErlTextCommand, SublimErlProjectLoader
+import SublimErl.sublimerl_core as GLOBALS
+from .sublimerl_core import SUBLIMERL_VERSION, SublimErlTextCommand, SublimErlProjectLoader
 
+# update command (used to edit the view content)
+class UpdateCommand(sublime_plugin.TextCommand):
+	def run(self, edit, buffer=None):
+		self.view.insert(edit, self.view.size(), buffer)
 
 # test runner
 class SublimErlTestRunner(SublimErlProjectLoader):
@@ -46,9 +51,8 @@ class SublimErlTestRunner(SublimErlProjectLoader):
 		self.panel_buffer = ''
 
 		# don't proceed if a test is already running
-		global SUBLIMERL
-		if SUBLIMERL.test_in_progress == True: return
-		SUBLIMERL.test_in_progress = True
+		if GLOBALS.SUBLIMERL.test_in_progress == True: return
+		GLOBALS.SUBLIMERL.test_in_progress = True
 
 		# setup panel
 		self.setup_panel()
@@ -56,32 +60,30 @@ class SublimErlTestRunner(SublimErlProjectLoader):
 		if self.init_tests() == True:
 			self.initialized = True
 		else:
-			SUBLIMERL.test_in_progress = False
+			GLOBALS.SUBLIMERL.test_in_progress = False
 
 	def setup_panel(self):
 		self.panel = self.window.get_output_panel(self.panel_name)
-		self.panel.settings().set("syntax", os.path.join(SUBLIMERL.plugin_path, "theme", "SublimErlTests.hidden-tmLanguage"))
-		self.panel.settings().set("color_scheme", os.path.join(SUBLIMERL.plugin_path, "theme", "SublimErlTests.hidden-tmTheme"))
 
 	def update_panel(self):
 		if len(self.panel_buffer):
-			panel_edit = self.panel.begin_edit()
-			self.panel.insert(panel_edit, self.panel.size(), self.panel_buffer)
-			self.panel.end_edit(panel_edit)
+			self.panel.run_command("update", {"buffer": self.panel_buffer})
 			self.panel.show(self.panel.size())
 			self.panel_buffer = ''
 			self.window.run_command("show_panel", {"panel": "output.%s" % self.panel_name})
 
 	def log(self, text):
-		self.panel_buffer += text.encode('utf-8')
+		if type(text) == bytes:
+			text = text.decode('utf-8')
+		self.panel_buffer += text
 		sublime.set_timeout(self.update_panel, 0)
 
 	def log_error(self, error_text):
 		self.log("Error => %s\n[ABORTED]\n" % error_text)
 
 	def init_tests(self):
-		if SUBLIMERL.initialized == False:
-			self.log("SublimErl could not be initialized:\n\n%s\n" % '\n'.join(SUBLIMERL.init_errors))
+		if GLOBALS.SUBLIMERL.initialized == False:
+			self.log("SublimErl could not be initialized:\n\n%s\n" % '\n'.join(GLOBALS.SUBLIMERL.init_errors))
 
 		# file saved?
 		if self.view.is_scratch():
@@ -106,7 +108,7 @@ class SublimErlTestRunner(SublimErlProjectLoader):
 
 	def compile_eunit_no_run(self):
 		# call rebar to compile -  HACK: passing in a non-existing suite forces rebar to not run the test suite
-		os_cmd = '%s eunit suites=sublimerl_unexisting_test' % SUBLIMERL.rebar_path
+		os_cmd = '%s eunit suites=sublimerl_unexisting_test' % GLOBALS.SUBLIMERL.rebar_path
 		if self.app_name: os_cmd += ' apps=%s' % self.app_name
 		retcode, data = self.execute_os_command(os_cmd, dir_type='project', block=True, log=False)
 
@@ -117,14 +119,12 @@ class SublimErlTestRunner(SublimErlProjectLoader):
 		self.log(data)
 
 	def reset_last_test(self):
-		global SUBLIMERL
-
-		SUBLIMERL.last_test = None
-		SUBLIMERL.last_test_type = None
+		GLOBALS.SUBLIMERL.last_test = None
+		GLOBALS.SUBLIMERL.last_test_type = None
 
 	def start_test(self, new=True):
 		# do not continue if no previous test exists and a redo was asked
-		if SUBLIMERL.last_test == None and new == False: return
+		if GLOBALS.SUBLIMERL.last_test == None and new == False: return
 		# set test
 		if new == True: self.reset_last_test()
 		# test callback
@@ -136,25 +136,22 @@ class SublimErlTestRunner(SublimErlProjectLoader):
 		pass
 
 	def on_test_ended(self):
-		global SUBLIMERL
-		SUBLIMERL.test_in_progress = False
+		GLOBALS.SUBLIMERL.test_in_progress = False
 
 
 # dialyzer test runner
 class SublimErlDialyzerTestRunner(SublimErlTestRunner):
 
 	def start_test_cmd(self, new):
-		global SUBLIMERL
-
 		if new == True:
 			# save test module
 			module_tests_name = self.erlang_module_name
 
-			SUBLIMERL.last_test = module_tests_name
-			SUBLIMERL.last_test_type = 'dialyzer'
+			GLOBALS.SUBLIMERL.last_test = module_tests_name
+			GLOBALS.SUBLIMERL.last_test_type = 'dialyzer'
 		else:
 			# retrieve test module
-			module_tests_name = SUBLIMERL.last_test
+			module_tests_name = GLOBALS.SUBLIMERL.last_test
 
 		# run test
 		this = self
@@ -170,7 +167,7 @@ class SublimErlDialyzerTestRunner(SublimErlTestRunner):
 		# compile eunit
 		self.compile_eunit_no_run()
 		# run dialyzer
-		retcode, data = self.execute_os_command('%s -n .eunit/%s.beam' % (SUBLIMERL.dialyzer_path, module_tests_name), dir_type='test', block=False)
+		retcode, data = self.execute_os_command('%s -n .eunit/%s.beam' % (GLOBALS.SUBLIMERL.dialyzer_path, module_tests_name), dir_type='test', block=False)
 		# interpret
 		self.interpret_test_results(retcode, data)
 
@@ -189,8 +186,6 @@ class SublimErlDialyzerTestRunner(SublimErlTestRunner):
 class SublimErlEunitTestRunner(SublimErlTestRunner):
 
 	def start_test_cmd(self, new):
-		global SUBLIMERL
-
 		# run test
 		if new == True:
 			# get test module name
@@ -207,12 +202,12 @@ class SublimErlEunitTestRunner(SublimErlTestRunner):
 
 			# save test
 			module_tests_name = self.erlang_module_name
-			SUBLIMERL.last_test = (module_name, module_tests_name, function_name)
-			SUBLIMERL.last_test_type = 'eunit'
+			GLOBALS.SUBLIMERL.last_test = (module_name, module_tests_name, function_name)
+			GLOBALS.SUBLIMERL.last_test_type = 'eunit'
 
 		else:
 			# retrieve test info
-			module_name, module_tests_name, function_name = SUBLIMERL.last_test
+			module_name, module_tests_name, function_name = GLOBALS.SUBLIMERL.last_test
 
 		# run test
 		this = self
@@ -226,7 +221,7 @@ class SublimErlEunitTestRunner(SublimErlTestRunner):
 		cursor_position = self.view.sel()[0].a
 		# get module content
 		region_full = sublime.Region(0, self.view.size())
-		module = SUBLIMERL.strip_code_for_parsing(self.view.substr(region_full))
+		module = GLOBALS.SUBLIMERL.strip_code_for_parsing(self.view.substr(region_full))
 		# parse regions
 		regex = re.compile(r"([a-z0-9][a-zA-Z0-9_]*_test(_)?\s*\(\s*\)\s*->[^.]*\.)", re.MULTILINE)
 		for m in regex.finditer(module):
@@ -250,7 +245,7 @@ class SublimErlEunitTestRunner(SublimErlTestRunner):
 			self.compile_eunit_run_suite(module_tests_name)
 
 	def compile_eunit_run_suite(self, suite, function_name=None):
-		os_cmd = '%s eunit suites=%s' % (SUBLIMERL.rebar_path, suite)
+		os_cmd = '%s eunit suites=%s' % (GLOBALS.SUBLIMERL.rebar_path, suite)
 
 		if function_name != None: os_cmd += ' tests=%s' % function_name
 		if self.app_name: os_cmd += ' apps=%s' % self.app_name
@@ -292,19 +287,17 @@ class SublimErlEunitTestRunner(SublimErlTestRunner):
 class SublimErlCtTestRunner(SublimErlTestRunner):
 
 	def start_test_cmd(self, new):
-		global SUBLIMERL
-
 		# run test
 		if new == True:
 			pos = self.erlang_module_name.find("_SUITE")
 			module_tests_name = self.erlang_module_name[0:pos]
 
 			# save test
-			SUBLIMERL.last_test = module_tests_name
-			SUBLIMERL.last_test_type = 'ct'
+			GLOBALS.SUBLIMERL.last_test = module_tests_name
+			GLOBALS.SUBLIMERL.last_test_type = 'ct'
 
 		else:
-			module_tests_name = SUBLIMERL.last_test
+			module_tests_name = GLOBALS.SUBLIMERL.last_test
 
 		# run test
 		this = self
@@ -316,7 +309,7 @@ class SublimErlCtTestRunner(SublimErlTestRunner):
 	def ct_test(self, module_tests_name):
 		# run CT for suite
 		self.log("Running tests of Common Tests SUITE \"%s_SUITE.erl\".\n\n" % module_tests_name)
-		os_cmd = '%s ct suites=%s skip_deps=true' % (SUBLIMERL.rebar_path, module_tests_name)
+		os_cmd = '%s ct suites=%s skip_deps=true' % (GLOBALS.SUBLIMERL.rebar_path, module_tests_name)
 		# compile all source code
 		self.compile_source()
 		# run suite
@@ -355,7 +348,7 @@ class SublimErlTestRunners():
 		test_runner.start_test()
 
 	def ct_or_eunit_test(self, view, new=True):
-		if SUBLIMERL.last_test_type == 'ct' or SUBLIMERL.get_erlang_module_name(view).find("_SUITE") != -1:
+		if GLOBALS.SUBLIMERL.last_test_type == 'ct' or GLOBALS.SUBLIMERL.get_erlang_module_name(view).find("_SUITE") != -1:
 			# ct
 			test_runner = SublimErlCtTestRunner(view)
 		else:
@@ -382,11 +375,11 @@ class SublimErlTestCommand(SublimErlTextCommand):
 class SublimErlRedoCommand(SublimErlTextCommand):
 	def run_command(self, edit):
 		# init
-		if SUBLIMERL.last_test_type == 'dialyzer': SublimErlTestRunners().dialyzer_test(self.view, new=False)
-		elif SUBLIMERL.last_test_type == 'eunit' or SUBLIMERL.last_test_type == 'ct': SublimErlTestRunners().ct_or_eunit_test(self.view, new=False)
+		if GLOBALS.SUBLIMERL.last_test_type == 'dialyzer': SublimErlTestRunners().dialyzer_test(self.view, new=False)
+		elif GLOBALS.SUBLIMERL.last_test_type == 'eunit' or GLOBALS.SUBLIMERL.last_test_type == 'ct': SublimErlTestRunners().ct_or_eunit_test(self.view, new=False)
 
 	def show_contextual_menu(self):
-		return SUBLIMERL.last_test != None
+		return GLOBALS.SUBLIMERL.last_test != None
 
 
 # open CT results

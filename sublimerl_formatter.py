@@ -1,5 +1,5 @@
 # ==========================================================================================================
-# SublimErl - A Sublime Text 2 Plugin for Erlang Integrated Testing & Code Completion
+# SublimErl - A Sublime Text 3 Plugin for Erlang Integrated Testing & Code Completion
 #
 # Copyright (C) 2013, Roberto Ostinelli <roberto@ostinelli.net>.
 # All rights reserved.
@@ -29,7 +29,8 @@
 
 # imports
 import sublime, sublime_plugin, os, tempfile
-from .sublimerl_core import SUBLIMERL, SublimErlTextCommand, SublimErlProjectLoader
+import SublimErl.sublimerl_core as GLOBALS
+from .sublimerl_core import SublimErlTextCommand, SublimErlProjectLoader
 
 
 # main autoformat
@@ -49,9 +50,9 @@ class SublimErlAutoFormat():
 		temp.write(content)
 		temp.close()
 		# call erlang formatter
-		os.chdir(SUBLIMERL.support_path)
-		escript_command = "sublimerl_formatter.erl %s" % SUBLIMERL.shellquote(temp.name)
-		retcode, data = SUBLIMERL.execute_os_command('%s %s' % (SUBLIMERL.escript_path, escript_command))
+		os.chdir(GLOBALS.SUBLIMERL.support_path)
+		escript_command = "sublimerl_formatter.erl %s" % GLOBALS.SUBLIMERL.shellquote(temp.name)
+		retcode, data = GLOBALS.SUBLIMERL.execute_os_command('%s %s' % (GLOBALS.SUBLIMERL.escript_path, escript_command))
 		# delete temp file
 		os.remove(temp.name)
 		if retcode == 0:

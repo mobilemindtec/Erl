@@ -2,7 +2,7 @@
 %% -*- erlang -*-
 %%! -smp enable debug verbose
 %% ==========================================================================================================
-%% SublimErl - A Sublime Text 2 Plugin for Erlang Integrated Testing & Code Completion
+%% SublimErl - A Sublime Text 3 Plugin for Erlang Integrated Testing & Code Completion
 %%
 %% Copyright (C) 2013, Roberto Ostinelli <roberto@ostinelli.net>, code for indenting taken and adapted from
 %%    <https://github.com/jimenezrick/vimerl/blob/master/indent/erlang_indent.erl> by Ricardo Catalinas

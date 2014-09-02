@@ -1,5 +1,5 @@
 # ==========================================================================================================
-# SublimErl - A Sublime Text 2 Plugin for Erlang Integrated Testing & Code Completion
+# SublimErl - A Sublime Text 3 Plugin for Erlang Integrated Testing & Code Completion
 #
 # Copyright (C) 2013, Roberto Ostinelli <roberto@ostinelli.net>.
 # All rights reserved.
@@ -30,7 +30,8 @@
 # imports
 import sublime
 import os, time, threading, pickle
-from .sublimerl_core import SUBLIMERL, SublimErlTextCommand, SublimErlProjectLoader
+import SublimErl.sublimerl_core as GLOBALS
+from .sublimerl_core import SublimErlTextCommand, SublimErlProjectLoader
 from .sublimerl_completion import SUBLIMERL_COMPLETIONS
 
 
@@ -55,8 +56,8 @@ class SublimErlFunctionSearch():
 
 	def set_search_completions(self):
 		# load file
-		searches_filepath = os.path.join(SUBLIMERL.plugin_path, "completion", "Current-Project.searches")
-		f = open(searches_filepath, 'r')
+		searches_filepath = os.path.join(GLOBALS.SUBLIMERL.plugin_path, "completion", "Current-Project.searches")
+		f = open(searches_filepath, 'rb')
 		searches = pickle.load(f)
 		f.close()
 		self.search_completions = searches

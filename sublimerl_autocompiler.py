@@ -1,5 +1,5 @@
 # ==========================================================================================================
-# SublimErl - A Sublime Text 2 Plugin for Erlang Integrated Testing & Code Completion
+# SublimErl - A Sublime Text 3 Plugin for Erlang Integrated Testing & Code Completion
 #
 # Copyright (C) 2013, Roberto Ostinelli <roberto@ostinelli.net>.
 # All rights reserved.
@@ -28,14 +28,9 @@
 
 # imports
 import sublime, sublime_plugin
-import os, threading
-<<<<<<< HEAD
-import re
-from sublimerl_core import SUBLIMERL, SublimErlProjectLoader
-=======
+import os, threading, re
 import SublimErl.sublimerl_core as GLOBALS
 from .sublimerl_core import SublimErlProjectLoader
->>>>>>> sublime3
 
 
 # update command (used to edit the view content)
@@ -57,8 +52,6 @@ class SublimErlAutocompiler(SublimErlProjectLoader):
 
 	def setup_panel(self):
 		self.panel = self.window.get_output_panel(self.panel_name)
-		self.panel.settings().set("syntax", os.path.join(GLOBALS.SUBLIMERL.plugin_path, "theme", "SublimErlAutocompile.hidden-tmLanguage"))
-		self.panel.settings().set("color_scheme", os.path.join(GLOBALS.SUBLIMERL.plugin_path, "theme", "SublimErlAutocompile.hidden-tmTheme"))
 
 	def update_panel(self):
 		if len(self.panel_buffer):
@@ -79,14 +72,9 @@ class SublimErlAutocompiler(SublimErlProjectLoader):
 		self.view.erase_regions("sublimerl_errors")
 
 	def log(self, text):
-<<<<<<< HEAD
-		self.last_text = text
-		self.panel_buffer += text.encode('utf-8')
-=======
 		if type(text) == bytes:
 			text = text.decode('utf-8')
 		self.panel_buffer += text
->>>>>>> sublime3
 		sublime.set_timeout(self.update_panel, 0)
 
 	def compile(self):
@@ -105,7 +93,7 @@ class SublimErlAutocompilerListener(sublime_plugin.EventListener):
 		if GLOBALS.SUBLIMERL.initialized == False: return
 		# ensure context matches
 		caret = view.sel()[0].a
-		if not ('source.erlang' in view.scope_name(caret) and sublime.platform() != 'windows'): return
+		if not ('source.erlang' in view.scope_name(caret)): return
 		# init
 		autocompiler = SublimErlAutocompiler(view)
 		# compile saved file & reload completions

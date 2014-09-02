@@ -1,5 +1,15 @@
 # SublimErl Changelog
 
+### 0.6.0:
+ * sublime text 3 support
+ * remove custom themes for panel
+ * fix autocompletion
+ * fix autocompiler
+ * fix run tests
+ * fix code formatting
+ * fix functions searching
+ * fix man pages
+
 ### 0.5.1:
  * added display error if plugin initializations are found
  * improved code search
