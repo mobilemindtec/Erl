@@ -29,9 +29,19 @@
 # imports
 import sublime, sublime_plugin
 import os, threading
+<<<<<<< HEAD
 import re
 from sublimerl_core import SUBLIMERL, SublimErlProjectLoader
+=======
+import SublimErl.sublimerl_core as GLOBALS
+from .sublimerl_core import SublimErlProjectLoader
+>>>>>>> sublime3
 
+
+# update command (used to edit the view content)
+class UpdateCommand(sublime_plugin.TextCommand):
+	def run(self, edit, buffer=None):
+		self.view.insert(edit, self.view.size(), buffer)
 
 # test runner
 class SublimErlAutocompiler(SublimErlProjectLoader):
@@ -47,14 +57,12 @@ class SublimErlAutocompiler(SublimErlProjectLoader):
 
 	def setup_panel(self):
 		self.panel = self.window.get_output_panel(self.panel_name)
-		self.panel.settings().set("syntax", os.path.join(SUBLIMERL.plugin_path, "theme", "SublimErlAutocompile.hidden-tmLanguage"))
-		self.panel.settings().set("color_scheme", os.path.join(SUBLIMERL.plugin_path, "theme", "SublimErlAutocompile.hidden-tmTheme"))
+		self.panel.settings().set("syntax", os.path.join(GLOBALS.SUBLIMERL.plugin_path, "theme", "SublimErlAutocompile.hidden-tmLanguage"))
+		self.panel.settings().set("color_scheme", os.path.join(GLOBALS.SUBLIMERL.plugin_path, "theme", "SublimErlAutocompile.hidden-tmTheme"))
 
 	def update_panel(self):
 		if len(self.panel_buffer):
-			panel_edit = self.panel.begin_edit()
-			self.panel.insert(panel_edit, self.panel.size(), self.panel_buffer)
-			self.panel.end_edit(panel_edit)
+			self.panel.run_command("update", {"buffer": self.panel_buffer})
 			self.panel.show(self.panel.size())
 			self.panel_buffer = ''
 			self.window.run_command("show_panel", {"panel": "output.%s" % self.panel_name})
@@ -71,8 +79,14 @@ class SublimErlAutocompiler(SublimErlProjectLoader):
 		self.view.erase_regions("sublimerl_errors")
 
 	def log(self, text):
+<<<<<<< HEAD
 		self.last_text = text
 		self.panel_buffer += text.encode('utf-8')
+=======
+		if type(text) == bytes:
+			text = text.decode('utf-8')
+		self.panel_buffer += text
+>>>>>>> sublime3
 		sublime.set_timeout(self.update_panel, 0)
 
 	def compile(self):
@@ -88,7 +102,7 @@ class SublimErlAutocompilerListener(sublime_plugin.EventListener):
 	# CALLBACK ON VIEW SAVE
 	def on_post_save(self, view):
 		# check init successful
-		if SUBLIMERL.initialized == False: return
+		if GLOBALS.SUBLIMERL.initialized == False: return
 		# ensure context matches
 		caret = view.sel()[0].a
 		if not ('source.erlang' in view.scope_name(caret) and sublime.platform() != 'windows'): return

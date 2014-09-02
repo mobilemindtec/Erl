@@ -72,7 +72,7 @@ class SublimErlLibParser():
 						# get completions
 						module_completions, line_numbers = self.get_completions(module)
 						if len(module_completions) > 0:
-							# set disasm
+							# set disasmf
 							disasms[module_name] = sorted(module_completions, key=lambda k: k[0])
 							# set searches
 							for i in range(0, len(module_completions)):
@@ -82,7 +82,7 @@ class SublimErlLibParser():
 							completions.append("{ \"trigger\": \"%s\", \"contents\": \"%s\" }" % (module_name, module_name))
 
 		# add BIF completions?
-		if disasms.has_key('erlang'):
+		if 'erlang' in disasms:
 			# we are generating erlang disasm
 			bif_completions = self.bif_completions()
 			for k in bif_completions.keys():
@@ -103,7 +103,7 @@ class SublimErlLibParser():
 		pickle.dump(disasms, f_disasms)
 		f_disasms.close()
 		# write to files: completions
-		f_completions = open("%s.sublime-completions" % dest_file_base, 'wb')
+		f_completions = open("%s.sublime-completions" % dest_file_base, 'w')
 		if len(completions) > 0:
 			f_completions.write("{ \"scope\": \"source.erlang\", \"completions\": [\n" + ',\n'.join(completions) + "\n]}")
 		else:

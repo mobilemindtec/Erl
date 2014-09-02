@@ -30,8 +30,8 @@
 # imports
 import sublime
 import os, time, threading, pickle
-from sublimerl_core import SUBLIMERL, SublimErlTextCommand, SublimErlProjectLoader
-from sublimerl_completion import SUBLIMERL_COMPLETIONS
+from .sublimerl_core import SUBLIMERL, SublimErlTextCommand, SublimErlProjectLoader
+from .sublimerl_completion import SUBLIMERL_COMPLETIONS
 
 
 # main autoformat

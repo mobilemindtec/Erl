@@ -33,6 +33,8 @@ SUBLIMERL_VERSION = '0.5.1'
 import sublime, sublime_plugin
 import os, subprocess, re
 
+SUBLIMERL = None
+
 # plugin initialized (Sublime might need to be restarted if some env configs / preferences change)
 class SublimErlGlobal():
 
@@ -111,7 +113,7 @@ class SublimErlGlobal():
 
 		def log(message):
 			self.init_errors.append(message)
-			print "SublimErl Init Error: %s" % message
+			print("SublimErl Init Error:", message )
 
 		def test_path(path):
 			return path != None and os.path.exists(path)
@@ -174,8 +176,13 @@ class SublimErlGlobal():
 			return m.group(1)
 
 	def get_exe_path(self, name):
-		retcode, data = self.execute_os_command('which %s' % name)
-		data = data.strip()
+		command = 'which %s'
+		if sublime.platform() == 'windows': 
+			command = 'where %s'
+		retcode, data = self.execute_os_command(command % name)
+		data = data.strip().decode('ascii')
+		data = data.split('\r\n')
+		data = data[0]
 		if retcode == 0 and len(data) > 0:
 			return data
 
@@ -183,7 +190,7 @@ class SublimErlGlobal():
 		# run escript to get erlang lib path
 		os.chdir(self.support_path)
 		escript_command = "sublimerl_utility.erl lib_dir"
-		retcode, data = self.execute_os_command('%s %s' % (self.escript_path, escript_command))
+		retcode, data = self.execute_os_command('"%s" %s' % (self.escript_path, escript_command))		
 		self.erlang_libs_path = data
 		return self.erlang_libs_path != ''
 
@@ -198,12 +205,13 @@ class SublimErlGlobal():
 
 
 	def shellquote(self, s):
-		return "'" + s.replace("'", "'\\''") + "'"
+		if s:
+			quote = "\"" if sublime.platform() == 'windows' else "'"
+			return quote + s.replace("'", "'\\''") + quote
 
-
-# initialize
-SUBLIMERL = SublimErlGlobal()
-
+def plugin_loaded():	
+	global SUBLIMERL
+	SUBLIMERL = SublimErlGlobal()
 
 # project loader
 class SublimErlProjectLoader():
@@ -263,7 +271,7 @@ class SublimErlProjectLoader():
 				self.app_name = self.find_app_name(app_file_path)
 
 	def find_app_name(self, app_file_path):
-		f = open(app_file_path, 'rb')
+		f = open(app_file_path)
 		app_desc = f.read()
 		f.close()
 		m = re.search(r"{\s*application\s*,\s*('?[A-Za-z0-9_]+'?)\s*,\s*\[", app_desc)
@@ -325,7 +333,7 @@ class SublimErlTextCommand(sublime_plugin.TextCommand):
 			# check
 			if SUBLIMERL.initialized == False:
 				# self.log("SublimErl could not be initialized:\n\n%s\n" % '\n'.join(SUBLIMERL.init_errors))
-				print "SublimErl could not be initialized:\n\n%s\n" % '\n'.join(SUBLIMERL.init_errors)
+				print ("SublimErl could not be initialized:", '\n'.join(SUBLIMERL.init_errors))
 				return
 			else:
 				return self.run_command(edit)
