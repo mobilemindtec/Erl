@@ -1,5 +1,5 @@
 # ==========================================================================================================
-# SublimErl - A Sublime Text 3 Plugin for Erlang Integrated Testing & Code Completion
+# Erl - A Sublime Text 3 Plugin for Erlang Integrated Testing & Code Completion
 #
 # Copyright (C) 2013, Roberto Ostinelli <roberto@ostinelli.net>.
 # All rights reserved.
@@ -27,16 +27,16 @@
 # ==========================================================================================================
 
 # globals
-SUBLIMERL_VERSION = '0.6.0'
+ERL_VERSION = '1.0.0'
 
 # imports
 import sublime, sublime_plugin
 import os, subprocess, re
 
-SUBLIMERL = None
+ERL = None
 
 # plugin initialized (Sublime might need to be restarted if some env configs / preferences change)
-class SublimErlGlobal():
+class ErlGlobal():
 
 	def __init__(self):
 		# default
@@ -71,7 +71,7 @@ class SublimErlGlobal():
 			self.initialized = True
 
 	def set_settings(self):
-		self.settings = sublime.load_settings('SublimErl.sublime-settings')
+		self.settings = sublime.load_settings('Erl.sublime-settings')
 
 	def set_env(self):
 		# TODO: enhance the finding of paths
@@ -113,7 +113,7 @@ class SublimErlGlobal():
 
 		def log(message):
 			self.init_errors.append(message)
-			print("SublimErl Init Error:", message )
+			print("Erl Init Error:", message )
 
 		def test_path(path):
 			return path != None and os.path.exists(path)
@@ -142,7 +142,7 @@ class SublimErlGlobal():
 			return False
 
 		# paths
-		self.plugin_path = os.path.join(sublime.packages_path(), 'SublimErl')
+		self.plugin_path = os.path.join(sublime.packages_path(), 'Erl')
 		self.completions_path = os.path.join(self.plugin_path, "completion")
 		self.support_path = os.path.join(self.plugin_path, "support")
 
@@ -189,7 +189,7 @@ class SublimErlGlobal():
 	def set_erlang_libs_path(self):
 		# run escript to get erlang lib path
 		os.chdir(self.support_path)
-		escript_command = "sublimerl_utility.erl lib_dir"
+		escript_command = "erl_utility.erl lib_dir"
 		retcode, data = self.execute_os_command('"%s" %s' % (self.escript_path, escript_command))		
 		self.erlang_libs_path = data
 		return self.erlang_libs_path != ''
@@ -210,11 +210,11 @@ class SublimErlGlobal():
 			return quote + s.replace("'", "'\\''") + quote
 
 def plugin_loaded():	
-	global SUBLIMERL
-	SUBLIMERL = SublimErlGlobal()
+	global ERL
+	ERL = ErlGlobal()
 
 # project loader
-class SublimErlProjectLoader():
+class ErlProjectLoader():
 
 	def __init__(self, view):
 		# init
@@ -232,7 +232,7 @@ class SublimErlProjectLoader():
 		self.set_app_name()
 
 	def set_erlang_module_name(self):
-		self.erlang_module_name = SUBLIMERL.get_erlang_module_name(self.view)
+		self.erlang_module_name = ERL.get_erlang_module_name(self.view)
 
 	def set_project_roots(self):
 		# get project & file roots
@@ -291,18 +291,18 @@ class SublimErlProjectLoader():
 		pass
 
 	def get_test_env(self):
-		env = SUBLIMERL.env.copy()
+		env = ERL.env.copy()
 		env['PATH'] = "%s:%s:" % (env['PATH'], self.project_root)
 		return env
 
 	def compile_source(self, skip_deps=False):
 		# compile to ebin
 		options = 'skip_deps=true' if skip_deps else ''
-		retcode, data = self.execute_os_command('%s compile %s' % (SUBLIMERL.rebar_path, options), dir_type='project', block=True, log=False)
+		retcode, data = self.execute_os_command('%s compile %s' % (ERL.rebar_path, options), dir_type='project', block=True, log=False)
 		return (retcode, data)
 
 	def shellquote(self, s):
-		return SUBLIMERL.shellquote(s)
+		return ERL.shellquote(s)
 
 	def execute_os_command(self, os_cmd, dir_type=None, block=False, log=True):
 		# set dir
@@ -326,14 +326,13 @@ class SublimErlProjectLoader():
 
 
 # common text command class
-class SublimErlTextCommand(sublime_plugin.TextCommand):
+class ErlTextCommand(sublime_plugin.TextCommand):
 	def run(self, edit):
 		# run only if context matches
 		if self._context_match():
 			# check
-			if SUBLIMERL.initialized == False:
-				# self.log("SublimErl could not be initialized:\n\n%s\n" % '\n'.join(SUBLIMERL.init_errors))
-				print ("SublimErl could not be initialized:", '\n'.join(SUBLIMERL.init_errors))
+			if ERL.initialized == False:
+				print ("Erl could not be initialized:", '\n'.join(ERL.init_errors))
 				return
 			else:
 				return self.run_command(edit)

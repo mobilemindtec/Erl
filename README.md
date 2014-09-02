@@ -1,40 +1,20 @@
-### SublimErl (Erlang Tests & Code Completion)
+### Erl (Erlang Tests & Code Completion); Fork of SublimErl for ST3
 
 ---
 
 ### Overview
 
-SublimErl is a plugin for the text editor [Sublime Text 3](http://www.sublimetext.com). It allows you to:
+Erl is a plugin for the text editor [Sublime Text 3](http://www.sublimetext.com). It allows you to:
 
-* Benefit from **Code Completion** ( all Erlang libs + your current project )
-* Allows you to **Auto-Indent**  your Erlang code
-* Run **Eunit** tests ( all tests for module / single test )
-* Run **Common Tests** ( all tests for module )
-* Run **Dialyzer** tests ( single module )
+* Benefit from **Code Completion** (all Erlang libs + your current project)
+* Allows you to **Auto-Indent** your Erlang code
+* Run **Eunit** tests (all tests for module/single test)
+* Run **Common Tests** (all tests for module)
+* Run **Dialyzer** tests (single module)
 * **Goto any exported function** of your project easily
 * Access **man pages** from the text editor
 
-All within your test editor.
-
-A brief feature introduction video can be seen [here](http://www.youtube.com/watch?v=KIzxbjlHmu0):
-
-[![SublimErl screenshot](http://www.ostinelli.net/_out_images/video.png)](http://www.youtube.com/watch?v=KIzxbjlHmu0)
-
----
-
-### Screenshots
-
-Here's a screenshot of SublimErl's **Code Completion** feature:
-
-![SublimErl screenshot](http://www.ostinelli.net/_out_images/code_completion_full.gif)
-
-Here's a screenshot of SublimErl's **Auto-Indenting** feature:
-
-![SublimErl screenshot](http://www.ostinelli.net/_out_images/indenting.gif)
-
-Here's a screenshot of SublimErl **running an Eunit specific test** in file.
-
-![SublimErl screenshot](http://www.ostinelli.net/_out_images/running_test.jpeg)
+All within your test editor. A brief feature introduction video can be seen [here](http://www.youtube.com/watch?v=KIzxbjlHmu0).
 
 ---
 
@@ -55,11 +35,13 @@ Here's a screenshot of SublimErl **running an Eunit specific test** in file.
 
 ### Installation
 
-SublimErl currently supports only on **OSX** and **Linux**. There are 3 ways to install it.
+Erl currently supports only on **OSX** and **Linux** (may work in Windows, but not tested). There are 3 ways to install it:
 
-##### 1. Sublime Package Control (soon)
+##### 1. Sublime Package Control
 
-##### 2. Git Clone
+Erl's latest stable versions are pushed automatically to the package control.
+
+##### 2. From source
 Go to your Sublime Text 3 `Packages` directory:
 
 * OS X: `~/Library/Application Support/Sublime Text 3/Packages`
@@ -67,30 +49,30 @@ Go to your Sublime Text 3 `Packages` directory:
 
 and clone the repository using the command below:
 
-``` shell
-git clone https://github.com/ostinelli/SublimErl.git
+```bash
+$ git clone https://github.com/artemeff/Erl.git
 ```
 
 ---
 
 ### Configuration
 
-SublimErl needs and will try to detect the paths of the following executables: **rebar**, **erl**, **escript** and **dialyzer**. If it doesn't succeed to find those, or if you prefer to manually configure these path, you can set them in the `SublimErl.sublime-settings` file, located in the `SublimErl` plugin directory.
+Erl needs and will try to detect the paths of the following executables: **rebar**, **erl**, **escript** and **dialyzer**. If it doesn't succeed to find those, or if you prefer to manually configure these path, you can set them in the `Erl.sublime-settings` file, located in the `Erl` plugin directory.
 
 ---
 
 ### Dependencies
 
-To use SublimErl, you need to have:
+To use Erl, you need to have:
 
-* The editor [Sublime Text 3](http://www.sublimetext.com)
+* [Sublime Text 3](http://www.sublimetext.com)
 * [Erlang](http://www.erlang.org/download.html)
 * [Rebar](https://github.com/rebar/rebar)
-* (optional) [Erlang man pages](http://www.erlang.org/download.html) if you use this functionality
+* [Erlang man pages](http://www.erlang.org/download.html) (optional)
 
 To unleash the full power of the plugin, you will also need to comply to:
 
-* OTP standards ( i.e. have your project defined according to [OTP Directory Structure](http://www.erlang.org/doc/design_principles/applications.html#id73730) ).
+* OTP standards (i.e. have your project defined according to [OTP Directory Structure](http://www.erlang.org/doc/design_principles/applications.html#id73730)).
 * [Rebar's conventions](https://github.com/basho/rebar/wiki/Rebar-and-OTP-conventions).
 
 TL;DR: it basically means to organize your project structure using:
@@ -117,6 +99,13 @@ or, for example, a more complex project structure defined in rebar.conf:
        |-- dep2
    |-- ...
 ```
+
+---
+
+### TODO
+
+* Add snippets
+* Highlight erlang configurations
 
 ---
 

@@ -1,4 +1,7 @@
-# SublimErl Changelog
+# Erl Changelog
+
+### 1.0.0
+ * rename to Erl
 
 ### 0.6.0:
  * sublime text 3 support

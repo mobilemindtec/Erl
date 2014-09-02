@@ -1,5 +1,5 @@
 # ==========================================================================================================
-# SublimErl - A Sublime Text 3 Plugin for Erlang Integrated Testing & Code Completion
+# Erl - A Sublime Text 3 Plugin for Erlang Integrated Testing & Code Completion
 #
 # Copyright (C) 2013, Roberto Ostinelli <roberto@ostinelli.net>.
 # All rights reserved.
@@ -28,77 +28,77 @@
 
 
 # imports
-import sublime, sublime_plugin
-import os
-import SublimErl.sublimerl_core as GLOBALS
-from .sublimerl_core import SublimErlTextCommand, SublimErlGlobal
+import sublime
+import os, time, threading, pickle
+import Erl.erl_core as GLOBALS
+from .erl_core import ErlTextCommand, ErlProjectLoader
+from .erl_completion import ERL_COMPLETIONS
 
-# update command (used to edit the view content)
-class UpdateCommand(sublime_plugin.TextCommand):
-	def run(self, edit, buffer=None):
-		self.view.insert(edit, self.view.size(), buffer)
 
-# show man
-class SublimErlMan():
+# main autoformat
+class ErlFunctionSearch():
 
 	def __init__(self, view):
 		# init
 		self.view = view
 		self.window = view.window()
-		self.module_names = []
-
-		self.panel_name = 'sublimerl_man'
-		self.panel_buffer = ''
-		# setup panel
-		self.setup_panel()
-
-	def setup_panel(self):
-		self.panel = self.window.get_output_panel(self.panel_name)
-
-	def update_panel(self):
-		if len(self.panel_buffer):
-			self.panel.run_command("update", {"buffer": self.panel_buffer})
-			self.panel.show(self.panel.size())
-			self.panel_buffer = ''
-			self.window.run_command("show_panel", {"panel": "output.%s" % self.panel_name})
-
-	def hide_panel(self):
-		self.window.run_command("hide_panel")
-
-	def log(self, text):
-		if type(text) == bytes:
-			text = text.decode('utf-8')
-		self.panel_buffer += text
-		sublime.set_timeout(self.update_panel, 0)
+		self.search_completions = []
 
 	def show(self):
-		# set modules
-		self.set_module_names()
+		# get completions
+		self.set_search_completions()
+		# strip out just the function name to be displayed
+		completions = []
+		for name, filepath, lineno in self.search_completions:
+			completions.append(name)
 		# open quick panel
-		sublime.active_window().show_quick_panel(self.module_names, self.on_select)
+		sublime.active_window().show_quick_panel(completions, self.on_select)
 
-	def set_module_names(self):
+	def set_search_completions(self):
 		# load file
-		modules_filepath = os.path.join(GLOBALS.SUBLIMERL.plugin_path, "completion", "Erlang-libs.sublime-completions")
-		f = open(modules_filepath, 'r')
-		contents = eval(f.read())
+		searches_filepath = os.path.join(GLOBALS.ERL.plugin_path, "completion", "Current-Project.searches")
+		f = open(searches_filepath, 'rb')
+		searches = pickle.load(f)
 		f.close()
-		# strip out just the module names to be displayed
-		module_names = []
-		for t in contents['completions']:
-			module_names.append(t['trigger'])
-		self.module_names = module_names
+		self.search_completions = searches
 
 	def on_select(self, index):
 		# get file and line
-		module_name = self.module_names[index]
-		# open man
-		retcode, data = GLOBALS.SUBLIMERL.execute_os_command("%s -man %s | col -b" % (GLOBALS.SUBLIMERL.erl_path, module_name))
-		if retcode == 0: self.log(data)
+		name, filepath, lineno = self.search_completions[index]
+		# open module at function position
+		self.open_file_and_goto_line(filepath, lineno)
+
+	def open_file_and_goto_line(self, filepath, line):
+		# open file
+		self.new_view = self.window.open_file(filepath)
+		# wait until file is loaded before going to the appropriate line
+		this = self
+		self.check_file_loading()
+		class ErlThread(threading.Thread):
+			def run(self):
+				# wait until file has done loading
+				s = 0
+				while this.is_loading and s < 3:
+					time.sleep(0.1)
+					sublime.set_timeout(this.check_file_loading, 0)
+					s += 1
+				# goto line
+				def goto_line():
+					# goto line
+					this.new_view.run_command("goto_line", {"line": line} )
+					# remove unused attrs
+					del this.new_view
+					del this.is_loading
+				if not this.is_loading: sublime.set_timeout(goto_line, 0)
+
+		ErlThread().start()
+
+	def check_file_loading(self):
+		self.is_loading = self.new_view.is_loading()
 
 
-# man command
-class SublimErlManCommand(SublimErlTextCommand):
+# repeat last test
+class ErlFunctionSearchCommand(ErlTextCommand):
 	def run_command(self, edit):
-		man = SublimErlMan(self.view)
-		man.show()
+		search = ErlFunctionSearch(self.view)
+		search.show()

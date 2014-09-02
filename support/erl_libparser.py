@@ -1,5 +1,5 @@
 # ==========================================================================================================
-# SublimErl - A Sublime Text 3 Plugin for Erlang Integrated Testing & Code Completion
+# Erl - A Sublime Text 3 Plugin for Erlang Integrated Testing & Code Completion
 #
 # Copyright (C) 2013, Roberto Ostinelli <roberto@ostinelli.net>.
 # All rights reserved.
@@ -28,7 +28,7 @@
 
 import sys, re, os, fnmatch, pickle, string, unittest
 
-class SublimErlLibParser():
+class ErlLibParser():
 
 	def __init__(self):
 		# compile default regexes
@@ -358,7 +358,7 @@ class SublimErlLibParser():
 class TestSequenceFunctions(unittest.TestCase):
 
 	def setUp(self):
-		self.parser = SublimErlLibParser()
+		self.parser = ErlLibParser()
 
 	def test_split_params(self):
 		fixtures = [
@@ -490,6 +490,6 @@ if __name__ == '__main__':
 	elif (len(sys.argv) == 3):
 		starting_dir = sys.argv[1]
 		dest_file_base = sys.argv[2]
-		parser = SublimErlLibParser()
+		parser = ErlLibParser()
 		parser.generate_completions(starting_dir, dest_file_base)
 

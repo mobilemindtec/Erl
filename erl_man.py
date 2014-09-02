@@ -1,5 +1,5 @@
 # ==========================================================================================================
-# SublimErl - A Sublime Text 3 Plugin for Erlang Integrated Testing & Code Completion
+# Erl - A Sublime Text 3 Plugin for Erlang Integrated Testing & Code Completion
 #
 # Copyright (C) 2013, Roberto Ostinelli <roberto@ostinelli.net>.
 # All rights reserved.
@@ -26,26 +26,28 @@
 # POSSIBILITY OF SUCH DAMAGE.
 # ==========================================================================================================
 
+
 # imports
 import sublime, sublime_plugin
-import os, threading, re
-import SublimErl.sublimerl_core as GLOBALS
-from .sublimerl_core import SublimErlProjectLoader
-
+import os
+import Erl.erl_core as GLOBALS
+from .erl_core import ErlTextCommand, ErlGlobal
 
 # update command (used to edit the view content)
 class UpdateCommand(sublime_plugin.TextCommand):
 	def run(self, edit, buffer=None):
 		self.view.insert(edit, self.view.size(), buffer)
 
-# test runner
-class SublimErlAutocompiler(SublimErlProjectLoader):
+# show man
+class ErlMan():
 
 	def __init__(self, view):
-		# init super
-		SublimErlProjectLoader.__init__(self, view)
 		# init
-		self.panel_name = 'sublimerl_autocompiler'
+		self.view = view
+		self.window = view.window()
+		self.module_names = []
+
+		self.panel_name = 'erl_man'
 		self.panel_buffer = ''
 		# setup panel
 		self.setup_panel()
@@ -59,17 +61,9 @@ class SublimErlAutocompiler(SublimErlProjectLoader):
 			self.panel.show(self.panel.size())
 			self.panel_buffer = ''
 			self.window.run_command("show_panel", {"panel": "output.%s" % self.panel_name})
-			regions = []
-			for line in self.last_text.splitlines():
-				m = re.search("(.+):(\d+):", line)
-				if m != None and self.view.file_name().endswith(m.group(1)):
-					r = self.view.line(self.view.text_point(long(m.group(2)) - 1, 0))
-					regions.append(r)
-			self.view.add_regions("sublimerl_errors", regions, "comment")
 
 	def hide_panel(self):
 		self.window.run_command("hide_panel")
-		self.view.erase_regions("sublimerl_errors")
 
 	def log(self, text):
 		if type(text) == bytes:
@@ -77,28 +71,34 @@ class SublimErlAutocompiler(SublimErlProjectLoader):
 		self.panel_buffer += text
 		sublime.set_timeout(self.update_panel, 0)
 
-	def compile(self):
-		retcode, data = self.compile_source(skip_deps=True)
-		if retcode != 0:
-			self.log(data)
-		else:
-			sublime.set_timeout(self.hide_panel, 0)
+	def show(self):
+		# set modules
+		self.set_module_names()
+		# open quick panel
+		sublime.active_window().show_quick_panel(self.module_names, self.on_select)
 
-# listener
-class SublimErlAutocompilerListener(sublime_plugin.EventListener):
+	def set_module_names(self):
+		# load file
+		modules_filepath = os.path.join(GLOBALS.ERL.plugin_path, "completion", "Erlang-libs.sublime-completions")
+		f = open(modules_filepath, 'r')
+		contents = eval(f.read())
+		f.close()
+		# strip out just the module names to be displayed
+		module_names = []
+		for t in contents['completions']:
+			module_names.append(t['trigger'])
+		self.module_names = module_names
 
-	# CALLBACK ON VIEW SAVE
-	def on_post_save(self, view):
-		# check init successful
-		if GLOBALS.SUBLIMERL.initialized == False: return
-		# ensure context matches
-		caret = view.sel()[0].a
-		if not ('source.erlang' in view.scope_name(caret)): return
-		# init
-		autocompiler = SublimErlAutocompiler(view)
-		# compile saved file & reload completions
-		class SublimErlThread(threading.Thread):
-			def run(self):
-				# compile
-				autocompiler.compile()
-		SublimErlThread().start()
+	def on_select(self, index):
+		# get file and line
+		module_name = self.module_names[index]
+		# open man
+		retcode, data = GLOBALS.ERL.execute_os_command("%s -man %s | col -b" % (GLOBALS.ERL.erl_path, module_name))
+		if retcode == 0: self.log(data)
+
+
+# man command
+class ErlManCommand(ErlTextCommand):
+	def run_command(self, edit):
+		man = ErlMan(self.view)
+		man.show()

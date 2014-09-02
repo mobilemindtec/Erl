@@ -1,5 +1,5 @@
 # ==========================================================================================================
-# SublimErl - A Sublime Text 3 Plugin for Erlang Integrated Testing & Code Completion
+# Erl - A Sublime Text 3 Plugin for Erlang Integrated Testing & Code Completion
 #
 # Copyright (C) 2013, Roberto Ostinelli <roberto@ostinelli.net>.
 # All rights reserved.
@@ -29,10 +29,10 @@
 # imports
 import sublime, sublime_plugin, fnmatch
 import os, threading, pickle, json, re
-import SublimErl.sublimerl_core as GLOBALS
-from .sublimerl_core import SublimErlProjectLoader
+import Erl.erl_core as GLOBALS
+from .erl_core import ErlProjectLoader
 
-SUBLIMERL_COMPLETIONS = {
+ERL_COMPLETIONS = {
 	'erlang_libs': {
 		'completions': {},
 		'load_in_progress': False,
@@ -46,13 +46,13 @@ SUBLIMERL_COMPLETIONS = {
 }
 
 # erlang module name completions
-class SublimErlModuleNameCompletions():
+class ErlModuleNameCompletions():
 
 	def set_completions(self):
 		# if errors occurred
-		if GLOBALS.SUBLIMERL.plugin_path == None: return
+		if GLOBALS.ERL.plugin_path == None: return
 		# load json
-		completions_full_path = os.path.join(GLOBALS.SUBLIMERL.plugin_path, 'completion', 'Erlang-Libs.sublime-completions.full')
+		completions_full_path = os.path.join(GLOBALS.ERL.plugin_path, 'completion', 'Erlang-Libs.sublime-completions.full')
 		if os.path.exists(completions_full_path):
 			f = open(completions_full_path)
 			file_json = json.load(f)
@@ -62,37 +62,37 @@ class SublimErlModuleNameCompletions():
 			completions = []
 			for m in file_json['completions']:
 				valid = True
-				for regex in GLOBALS.SUBLIMERL.completion_skip_erlang_libs:
+				for regex in GLOBALS.ERL.completion_skip_erlang_libs:
 					if re.search(regex, m['trigger']):
 						valid = False
 						break
 				if valid == True: completions.append(m)
 			# generate completion file
 			file_json['completions'] = completions
-			f = open(os.path.join(GLOBALS.SUBLIMERL.plugin_path, 'completion', 'Erlang-Libs.sublime-completions'), 'w')
+			f = open(os.path.join(GLOBALS.ERL.plugin_path, 'completion', 'Erlang-Libs.sublime-completions'), 'w')
 			f.write(json.dumps(file_json))
 			f.close()
 
 	def set_completions_threaded(self):
 		this = self
-		class SublimErlThread(threading.Thread):
+		class ErlThread(threading.Thread):
 			def run(self):
 				this.set_completions()
-		SublimErlThread().start()
+		ErlThread().start()
 
 
 def plugin_loaded():	
-	sublime.set_timeout(lambda: SublimErlModuleNameCompletions().set_completions_threaded(), 5000)
+	sublime.set_timeout(lambda: ErlModuleNameCompletions().set_completions_threaded(), 5000)
 
 
 
 # completions
-class SublimErlCompletions(SublimErlProjectLoader):
+class ErlCompletions(ErlProjectLoader):
 
 	def get_available_completions(self):		
 		# load current erlang libs
-		if SUBLIMERL_COMPLETIONS['erlang_libs']['completions'] == {}: self.load_erlang_lib_completions()
-		# start rebuilding: only done once per sublimerl session
+		if ERL_COMPLETIONS['erlang_libs']['completions'] == {}: self.load_erlang_lib_completions()
+		# start rebuilding: only done once per erl session
 		# [i.e. needs sublime text restart to regenerate erlang completions]
 		self.generate_erlang_lib_completions()
 		# generate & load project files
@@ -110,47 +110,47 @@ class SublimErlCompletions(SublimErlProjectLoader):
 
 	def load_completions(self, code_type):
 		# check lock	
-		global SUBLIMERL_COMPLETIONS
-		if SUBLIMERL_COMPLETIONS[code_type]['load_in_progress'] == True: return
+		global ERL_COMPLETIONS
+		if ERL_COMPLETIONS[code_type]['load_in_progress'] == True: return
 		# set lock
-		SUBLIMERL_COMPLETIONS[code_type]['load_in_progress'] = True
+		ERL_COMPLETIONS[code_type]['load_in_progress'] = True
 		# load
 		this = self
-		class SublimErlThread(threading.Thread):
+		class ErlThread(threading.Thread):
 			def run(self):
-				global SUBLIMERL_COMPLETIONS
+				global ERL_COMPLETIONS
 				# load completetions from file
-				disasm_filepath = os.path.join(GLOBALS.SUBLIMERL.plugin_path, "completion", "%s.disasm" % this.get_completion_filename(code_type))				
+				disasm_filepath = os.path.join(GLOBALS.ERL.plugin_path, "completion", "%s.disasm" % this.get_completion_filename(code_type))				
 				if os.path.exists(disasm_filepath):
 					# load file
 					f = open(disasm_filepath, 'rb')
 					completions = pickle.load(f)
 					f.close()
 					# set
-					SUBLIMERL_COMPLETIONS[code_type]['completions'] = completions
+					ERL_COMPLETIONS[code_type]['completions'] = completions
 
 				# release lock
-				SUBLIMERL_COMPLETIONS[code_type]['load_in_progress'] = False
+				ERL_COMPLETIONS[code_type]['load_in_progress'] = False
 
-		SublimErlThread().start()
+		ErlThread().start()
 
 	def generate_erlang_lib_completions(self):
 		# check lock
-		global SUBLIMERL_COMPLETIONS
-		if SUBLIMERL_COMPLETIONS['erlang_libs']['rebuilt'] == True: return
+		global ERL_COMPLETIONS
+		if ERL_COMPLETIONS['erlang_libs']['rebuilt'] == True: return
 		# set lock
-		SUBLIMERL_COMPLETIONS['erlang_libs']['rebuilt'] = True
+		ERL_COMPLETIONS['erlang_libs']['rebuilt'] = True
 
 		# rebuild
 		this = self
-		class SublimErlThread(threading.Thread):
+		class ErlThread(threading.Thread):
 			def run(self):				
 				# get dirs
-				dest_file_base = os.path.join(GLOBALS.SUBLIMERL.completions_path, "Erlang-Libs")				
+				dest_file_base = os.path.join(GLOBALS.ERL.completions_path, "Erlang-Libs")				
 				# get erlang libs info
-				current_erlang_libs = [name for name in os.listdir(GLOBALS.SUBLIMERL.erlang_libs_path) if os.path.isdir(os.path.join(GLOBALS.SUBLIMERL.erlang_libs_path, name))]
+				current_erlang_libs = [name for name in os.listdir(GLOBALS.ERL.erlang_libs_path) if os.path.isdir(os.path.join(GLOBALS.ERL.erlang_libs_path, name))]
 				# read file of previous erlang libs
-				dirinfo_path = os.path.join(GLOBALS.SUBLIMERL.completions_path, "Erlang-Libs.dirinfo")
+				dirinfo_path = os.path.join(GLOBALS.ERL.completions_path, "Erlang-Libs.dirinfo")
 
 				if os.path.exists(dirinfo_path):
 					f = open(dirinfo_path, 'rb')
@@ -162,9 +162,9 @@ class SublimErlCompletions(SublimErlProjectLoader):
 				# different erlang libs -> regenerate
 				this.status("Regenerating Erlang lib completions...")
 				# set cwd
-				os.chdir(GLOBALS.SUBLIMERL.support_path)
+				os.chdir(GLOBALS.ERL.support_path)
 				# start gen
-				this.execute_os_command("python sublimerl_libparser.py %s %s" % (this.shellquote(this.project_root), this.shellquote(dest_file_base)))
+				this.execute_os_command("python erl_libparser.py %s %s" % (this.shellquote(this.project_root), this.shellquote(dest_file_base)))
 				# rename file to .full
 				os.remove("%s.sublime-completions.full" % dest_file_base)
 				os.rename("%s.sublime-completions" % dest_file_base, "%s.sublime-completions.full" % dest_file_base)
@@ -173,81 +173,81 @@ class SublimErlCompletions(SublimErlProjectLoader):
 				pickle.dump(current_erlang_libs, f)
 				f.close()
 				# regenerate completions based on options
-				SublimErlModuleNameCompletions().set_completions()
+				ErlModuleNameCompletions().set_completions()
 				# trigger event to reload completions
 				this.load_erlang_lib_completions()
 				this.status("Finished regenerating Erlang lib completions.")
 
-		SublimErlThread().start()
+		ErlThread().start()
 
 	def generate_project_completions(self):
 		# check lock
-		global SUBLIMERL_COMPLETIONS
-		if SUBLIMERL_COMPLETIONS['current_project']['rebuild_in_progress'] == True: return
+		global ERL_COMPLETIONS
+		if ERL_COMPLETIONS['current_project']['rebuild_in_progress'] == True: return
 		# set lock
-		SUBLIMERL_COMPLETIONS['current_project']['rebuild_in_progress'] = True
+		ERL_COMPLETIONS['current_project']['rebuild_in_progress'] = True
 
 		# rebuild
 		this = self
-		class SublimErlThread(threading.Thread):
+		class ErlThread(threading.Thread):
 			def run(self):
-				global SUBLIMERL_COMPLETIONS
+				global ERL_COMPLETIONS
 				this.status("Regenerating Project completions...")
 				# get dir
-				dest_file_base = os.path.join(GLOBALS.SUBLIMERL.completions_path, "Current-Project")
+				dest_file_base = os.path.join(GLOBALS.ERL.completions_path, "Current-Project")
 				# set cwd
-				os.chdir(GLOBALS.SUBLIMERL.support_path)
+				os.chdir(GLOBALS.ERL.support_path)
 				# start gen
-				this.execute_os_command("python sublimerl_libparser.py %s %s" % (this.shellquote(this.project_root), this.shellquote(dest_file_base)))
+				this.execute_os_command("python erl_libparser.py %s %s" % (this.shellquote(this.project_root), this.shellquote(dest_file_base)))
 				# release lock
-				SUBLIMERL_COMPLETIONS['current_project']['rebuild_in_progress'] = False
+				ERL_COMPLETIONS['current_project']['rebuild_in_progress'] = False
 				# trigger event to reload completions
 				this.load_current_project_completions()
 				this.status("Finished regenerating Project completions.")
 
-		SublimErlThread().start()
+		ErlThread().start()
 
 
 # listener
-class SublimErlCompletionsListener(sublime_plugin.EventListener):
+class ErlCompletionsListener(sublime_plugin.EventListener):
     
 	# CALLBACK ON VIEW SAVE
 	def on_post_save(self, view):
 		# check init successful
 
-		if GLOBALS.SUBLIMERL.initialized == False: return
+		if GLOBALS.ERL.initialized == False: return
 		# ensure context matches
 		caret = view.sel()[0].a
 		if not ('source.erlang' in view.scope_name(caret)): return
 		# init
-		completions = SublimErlCompletions(view)
+		completions = ErlCompletions(view)
 		# compile saved file & reload completions
-		class SublimErlThread(threading.Thread):
+		class ErlThread(threading.Thread):
 			def run(self):
 				# trigger event to reload completions
 				completions.generate_project_completions()
-		SublimErlThread().start()
+		ErlThread().start()
 
 	# CALLBACK ON VIEW LOADED
 	def on_load(self, view):	
 		# check init successful
-		if GLOBALS.SUBLIMERL.initialized == False: return
+		if GLOBALS.ERL.initialized == False: return
 		# only trigger within erlang
 		caret = view.sel()[0].a
 		if not ('source.erlang' in view.scope_name(caret)): return
 		# init
-		completions = SublimErlCompletions(view)
+		completions = ErlCompletions(view)
 		# get completions
-		class SublimErlThread(threading.Thread):
+		class ErlThread(threading.Thread):
 			def run(self):
 				# trigger event to reload completions
 				completions.get_available_completions()
-		SublimErlThread().start()
+		ErlThread().start()
 
 	# CALLBACK ON QUERY COMPLETIONS
 	def on_query_completions(self, view, prefix, locations):
 		# check init successful
-		if GLOBALS.SUBLIMERL.initialized == False: return
+		if GLOBALS.ERL.initialized == False: return
 		# only trigger within erlang
 		if not view.match_selector(locations[0], "source.erlang"): return []
 		# only trigger if : was hit
@@ -259,11 +259,11 @@ class SublimErlCompletionsListener(sublime_plugin.EventListener):
 		function_name = view.substr(view.word(pt))
 		if function_name.strip() == ':': return
 		# check for existance
-		global SUBLIMERL_COMPLETIONS
-		if function_name in SUBLIMERL_COMPLETIONS['erlang_libs']['completions']:			
-			available_completions = SUBLIMERL_COMPLETIONS['erlang_libs']['completions'][function_name]
-		elif function_name in SUBLIMERL_COMPLETIONS['current_project']['completions']:			
-			available_completions = SUBLIMERL_COMPLETIONS['current_project']['completions'][function_name]
+		global ERL_COMPLETIONS
+		if function_name in ERL_COMPLETIONS['erlang_libs']['completions']:			
+			available_completions = ERL_COMPLETIONS['erlang_libs']['completions'][function_name]
+		elif function_name in ERL_COMPLETIONS['current_project']['completions']:			
+			available_completions = ERL_COMPLETIONS['current_project']['completions'][function_name]
 		else: 			
 			return
 

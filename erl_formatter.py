@@ -1,5 +1,5 @@
 # ==========================================================================================================
-# SublimErl - A Sublime Text 3 Plugin for Erlang Integrated Testing & Code Completion
+# Erl - A Sublime Text 3 Plugin for Erlang Integrated Testing & Code Completion
 #
 # Copyright (C) 2013, Roberto Ostinelli <roberto@ostinelli.net>.
 # All rights reserved.
@@ -29,12 +29,12 @@
 
 # imports
 import sublime, sublime_plugin, os, tempfile
-import SublimErl.sublimerl_core as GLOBALS
-from .sublimerl_core import SublimErlTextCommand, SublimErlProjectLoader
+import Erl.erl_core as GLOBALS
+from .erl_core import ErlTextCommand, ErlProjectLoader
 
 
 # main autoformat
-class SublimErlAutoFormat():
+class ErlAutoFormat():
 
 	def __init__(self, view, edit):
 		self.view = view
@@ -50,9 +50,9 @@ class SublimErlAutoFormat():
 		temp.write(content)
 		temp.close()
 		# call erlang formatter
-		os.chdir(GLOBALS.SUBLIMERL.support_path)
-		escript_command = "sublimerl_formatter.erl %s" % GLOBALS.SUBLIMERL.shellquote(temp.name)
-		retcode, data = GLOBALS.SUBLIMERL.execute_os_command('%s %s' % (GLOBALS.SUBLIMERL.escript_path, escript_command))
+		os.chdir(GLOBALS.ERL.support_path)
+		escript_command = "erl_formatter.erl %s" % GLOBALS.ERL.shellquote(temp.name)
+		retcode, data = GLOBALS.ERL.execute_os_command('%s %s' % (GLOBALS.ERL.escript_path, escript_command))
 		# delete temp file
 		os.remove(temp.name)
 		if retcode == 0:
@@ -65,7 +65,7 @@ class SublimErlAutoFormat():
 
 
 # format command
-class SublimErlAutoFormatCommand(SublimErlTextCommand):
+class ErlAutoFormatCommand(ErlTextCommand):
 	def run_command(self, edit):
-		formatter = SublimErlAutoFormat(self.view, edit)
+		formatter = ErlAutoFormat(self.view, edit)
 		formatter.format()
