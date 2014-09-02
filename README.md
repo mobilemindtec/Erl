@@ -105,6 +105,7 @@ or, for example, a more complex project structure defined in rebar.conf:
 ### TODO
 
 * Add snippets
+* Add REPL
 * Highlight erlang configurations
 
 ---
