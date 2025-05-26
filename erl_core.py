@@ -129,7 +129,7 @@ class ErlGlobal():
 			log("Erlang binary (escript) cannot be found.")
 
 		# rebar
-		self.rebar_path = self.settings.get('rebar_path', self.get_exe_path('rebar'))
+		self.rebar_path = self.settings.get('rebar_path', self.get_exe_path('rebar3'))
 		if test_path(self.rebar_path) == False:
 			log("Rebar cannot be found, please download and install from <https://github.com/basho/rebar>.")
 			return False

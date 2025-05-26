@@ -6,7 +6,7 @@
 %%
 %% Copyright (C) 2013, Roberto Ostinelli <roberto@ostinelli.net>, code for indenting taken and adapted from
 %%    <https://github.com/jimenezrick/vimerl/blob/master/indent/erlang_indent.erl> by Ricardo Catalinas
-%%    Jiménez, who has agreed to release this portion of code in BSD license.
+%%    JimÃ©nez, who has agreed to release this portion of code in BSD license.
 %% All rights reserved.
 %%
 %% BSD License
@@ -41,30 +41,30 @@
 
 % command line exposure
 main([FilePath]) ->
-	Lines = read_file(FilePath),
-	Formatted = source_indentation(Lines),
-	io:format("~s", [Formatted]);
+    Lines = read_file(FilePath),
+    Formatted = source_indentation(Lines),
+    io:format("~s", [Formatted]);
 
 main(_) ->
-	halt(1).
+    halt(1).
 
 read_file(File) ->
     {ok, FileDev} = file:open(File, [raw, read, read_ahead]),
-	Lines = read_file([],FileDev),
+    Lines = read_file([],FileDev),
     file:close(FileDev),
     Lines.
 
 read_file(Lines, FileDev) ->
-     case file:read_line(FileDev) of
-          {ok, Line} ->
-               read_file([Line|Lines], FileDev);
-          eof ->
-               lists:reverse(Lines)
-     end.
+    case file:read_line(FileDev) of
+        {ok, Line} ->
+            read_file([Line|Lines], FileDev);
+        eof ->
+            lists:reverse(Lines)
+    end.
 
 source_indentation(Lines) ->
     try
-    	Source = lists:flatten(Lines),
+        Source = lists:flatten(Lines),
         Tokens = tokenize_source(Source),
         lists:flatten(source_indentation(Tokens, Lines, 1, []))
     catch
@@ -73,7 +73,7 @@ source_indentation(Lines) ->
     end.
 
 source_indentation(_Tokens, [], _Pos, FormattedLines) ->
-	lists:reverse(FormattedLines);
+    lists:reverse(FormattedLines);
 source_indentation(Tokens, [Line|Lines], Pos, FormattedLines) ->
     try
         % compute indent for line in Pos
@@ -81,7 +81,7 @@ source_indentation(Tokens, [Line|Lines], Pos, FormattedLines) ->
         {IndentTab, _IndentCol} = indentation_between(PrevToks, NextToks),
         % reformat line
         NewLine = string:copies("\t", IndentTab) ++
-        	re:replace(Line, "\\A[ \t]+", "", [{return, list}]),
+            re:replace(Line, "\\A[ \t]+", "", [{return, list}]),
         source_indentation(Tokens, Lines, Pos + 1, [NewLine|FormattedLines])
     catch
         throw:scan_error ->
@@ -113,16 +113,13 @@ split_prev_block(Tokens, Line) ->
     {lists:reverse(PrevToks3), NextToks}.
 
 category(Token) ->
-    {category, Cat} = erl_scan:token_info(Token, category),
-    Cat.
+    erl_scan:category(Token).
 
 line(Token) ->
-    {line, Line} = erl_scan:token_info(Token, line),
-    Line.
+    erl_scan:line(Token).
 
 column(Token) ->
-    {column, Col} = erl_scan:token_info(Token, column),
-    Col.
+    erl_scan:column(Token).
 
 indentation_between([], _) ->
     {0, none};

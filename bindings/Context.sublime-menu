@@ -1,10 +1,11 @@
 [
-	{ "caption": "-" },
 	{
+		"id": "Erl",
 		"caption": "Erl",
 		"children":
 			[
 				{ "caption": "Run Tests", "command": "erl_test" },
+				{ "caption": "Code Format", "command": "erl_auto_format" },
 				{ "caption": "Run Dialyzer", "command": "erl_dialyzer" },
 				{ "caption": "Run Last runned tests", "command": "erl_redo" },
 				{ "caption": "View test results", "command": "erl_ct_results" }
