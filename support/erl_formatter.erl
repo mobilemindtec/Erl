@@ -6,7 +6,7 @@
 %%
 %% Copyright (C) 2013, Roberto Ostinelli <roberto@ostinelli.net>, code for indenting taken and adapted from
 %%    <https://github.com/jimenezrick/vimerl/blob/master/indent/erlang_indent.erl> by Ricardo Catalinas
-%%    JimÃ©nez, who has agreed to release this portion of code in BSD license.
+%%    who has agreed to release this portion of code in BSD license.
 %% All rights reserved.
 %%
 %% BSD License
@@ -41,7 +41,11 @@
 
 % command line exposure
 main([FilePath]) ->
-    Lines = read_file(FilePath),
+    % Lines = read_file(FilePath),
+    Lines = case file:read_file(FilePath) of
+        {ok, Data} -> {ok, unicode:characters_to_list(Data, utf8)};
+        Other -> Other
+    end,
     Formatted = source_indentation(Lines),
     io:format("~s", [Formatted]);
 
