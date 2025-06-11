@@ -101,7 +101,7 @@ class ErlAutocompiler(ErlProjectLoader):
 				self.log(data)
 				return
 
-		sublime.set_timeout(self.hide_panel, 0)
+		#sublime.set_timeout(self.hide_panel, 0)
 
 # listener
 class ErlAutocompilerListener(sublime_plugin.EventListener):

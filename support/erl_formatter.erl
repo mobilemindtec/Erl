@@ -52,19 +52,6 @@ main([FilePath]) ->
 main(_) ->
     halt(1).
 
-read_file(File) ->
-    {ok, FileDev} = file:open(File, [raw, read, read_ahead]),
-    Lines = read_file([],FileDev),
-    file:close(FileDev),
-    Lines.
-
-read_file(Lines, FileDev) ->
-    case file:read_line(FileDev) of
-        {ok, Line} ->
-            read_file([Line|Lines], FileDev);
-        eof ->
-            lists:reverse(Lines)
-    end.
 
 source_indentation(Lines) ->
     try

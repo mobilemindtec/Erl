@@ -53,7 +53,7 @@ class ErlAutoFormat():
 		os.chdir(GLOBALS.ERL.support_path)
 		escript_command = "erl_formatter.erl %s" % GLOBALS.ERL.shellquote(temp.name)
 		retcode, data = GLOBALS.ERL.execute_os_command('%s %s' % (GLOBALS.ERL.escript_path, escript_command))
-		print("run erl format! %s" % data)
+		
 		# delete temp file
 		os.remove(temp.name)
 		if retcode == 0:
