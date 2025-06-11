@@ -41,17 +41,26 @@
 
 % command line exposure
 main([FilePath]) ->
-    % Lines = read_file(FilePath),
-    Lines = case file:read_file(FilePath) of
-        {ok, Data} -> {ok, unicode:characters_to_list(Data, utf8)};
-        Other -> Other
-    end,
+    Lines = read_file(FilePath),
     Formatted = source_indentation(Lines),
     io:format("~s", [Formatted]);
 
 main(_) ->
     halt(1).
 
+read_file(File) ->
+    {ok, FileDev} = file:open(File, [raw, read, read_ahead,{encoding, utf8}]),
+    Lines = read_file([],FileDev),
+    file:close(FileDev),
+    Lines.
+
+read_file(Lines, FileDev) ->
+    case file:read_line(FileDev) of
+        {ok, Line} ->
+            read_file([Line|Lines], FileDev);
+        eof ->
+            lists:reverse(Lines)
+    end.    
 
 source_indentation(Lines) ->
     try

@@ -201,6 +201,9 @@ class ErlGlobal():
 		# start proc
 		p = subprocess.Popen(os_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True, env=self.env)
 		stdout, stderr = p.communicate()
+
+		if p.returncode != 0:
+			print("COMPILER ERROR %s: %s" % (p.returncode, stderr))
 		return (p.returncode, stdout)
 
 
