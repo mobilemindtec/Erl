@@ -39,17 +39,21 @@
 -define(BRANCH_EXPR(T), ?IS(T, 'fun'); ?IS(T, 'receive'); ?IS(T, 'if'); ?IS(T, 'case'); ?IS(T, 'try')).
 -record(state, {stack = [], tabs = [0], cols = [none]}).
 
+% ão
 % command line exposure
-main([FilePath]) ->
-    Lines = read_file(FilePath),
+main([FilePath, FileDest]) ->
+    Lines = read_file(FilePath),    
     Formatted = source_indentation(Lines),
-    io:format("~s", [Formatted]);
+    {ok, FileDev} = file:open(FileDest, [raw, write]),
+    ok = file:write(FileDev, io_lib:format("~ts",[Formatted])),
+    io:format("OK~n");
+%% io:format("~ts", [unicode:characters_to_binary(Formatted, utf8)]);
 
 main(_) ->
     halt(1).
 
 read_file(File) ->
-    {ok, FileDev} = file:open(File, [raw, read, read_ahead,{encoding, utf8}]),
+    {ok, FileDev} = file:open(File, [raw, read]),
     Lines = read_file([],FileDev),
     file:close(FileDev),
     Lines.
@@ -60,7 +64,8 @@ read_file(Lines, FileDev) ->
             read_file([Line|Lines], FileDev);
         eof ->
             lists:reverse(Lines)
-    end.    
+    end.  
+
 
 source_indentation(Lines) ->
     try

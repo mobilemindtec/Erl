@@ -51,12 +51,16 @@ class ErlAutoFormat():
 		temp.close()
 		# call erlang formatter
 		os.chdir(GLOBALS.ERL.support_path)
-		escript_command = "erl_formatter.erl %s" % GLOBALS.ERL.shellquote(temp.name)
-		print('%s %s' % (GLOBALS.ERL.escript_path, escript_command))
+		escript_command = "erl_formatter.erl %s %s" % (GLOBALS.ERL.shellquote(temp.name), GLOBALS.ERL.shellquote(temp.name))
+		
+		#print('%s %s' % (GLOBALS.ERL.escript_path, escript_command))
+
 		retcode, data = GLOBALS.ERL.execute_os_command('%s %s' % (GLOBALS.ERL.escript_path, escript_command))
+
 		# delete temp file
-		os.remove(temp.name)
 		if retcode == 0:
+			with open(temp.name, 'rb') as file:
+				data = file.read()
 			# substitute text
 			self.view.replace(self.edit, region_full, data.decode('utf-8'))
 			# reset caret to original position
@@ -64,6 +68,7 @@ class ErlAutoFormat():
 			self.view.sel().add(current_region)
 			self.view.show(current_region)
 
+		os.remove(temp.name)
 
 # format command
 class ErlAutoFormatCommand(ErlTextCommand):
